@@ -1,7 +1,7 @@
 {
     "hostname": "localhost", // Hostname that will be used.
     "https_mode": false, // Enable HTTPS Mode or not
-    "upload_path": "/var/www/ihacdn/uploads", // The saved uploads
+    "upload_path": "./", // The saved uploads
     "admin_password": "pleasechangethis", // Password for Admin
     "filename_length": 8, // Randomized password length
     "redisdb": {
