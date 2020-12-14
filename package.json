@@ -17,7 +17,8 @@
     "mmmagic": "^0.5.3",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.32",
-    "multer": "^1.4.2"
+    "multer": "^1.4.2",
+    "node-cron": "^2.0.3"
   },
   "devDependencies": {
     "@types/atpl": "0.0.30",
@@ -32,6 +33,7 @@
     "@types/moment": "^2.13.0",
     "@types/moment-timezone": "^0.5.30",
     "@types/multer": "^1.4.5",
+    "@types/node-cron": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^4.9.1",
     "@typescript-eslint/parser": "^4.9.1",
     "eslint": "^7.15.0",

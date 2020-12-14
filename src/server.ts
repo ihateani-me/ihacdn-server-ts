@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("dotenv").config();
+import cron from "node-cron";
 import express from "express";
 import * as cons from "consolidate";
 import express_compression from "compression";
@@ -11,6 +12,7 @@ import { humanizebytes, is_none } from "./utils/swissknife";
 import { ShortenerAPI, UploadAPI } from "./routes";
 import { RedisDB } from "./utils/redisdb";
 import { DELETED_ERROR } from "./utils/error_message";
+import { clearExpiredFile } from "./utils/file_retention";
 
 // @ts-ignore
 const REDIS_INSTANCE = new RedisDB(config.redisdb.host, config.redisdb.port, config.redisdb.password);
@@ -158,3 +160,13 @@ const listener = app.listen(6969, () => {
     // @ts-ignore
     console.log("http://127.0.0.1:" + listener.address().port);
 })
+
+// Run retention clearance every hour
+cron.schedule("* */1 * * *", () => {
+    clearExpiredFile().then(() => {
+        // void
+    }).catch((err) => {
+        console.error("[Retention] Error occured:");
+        console.error(err);
+    })
+});
