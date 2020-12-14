@@ -43,3 +43,5 @@ node_modules/
 dist/
 src/config.js
 src/config.json
+uploads/
+uploads_admin/
