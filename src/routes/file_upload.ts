@@ -9,9 +9,11 @@ import { Magic, MAGIC_MIME_TYPE } from "mmmagic";
 import moment from "moment-timezone";
 import bluebird from "bluebird";
 import { PAYLOAD_TOO_LARGE, BLOCKED_EXTENSION } from "../utils/error_message";
+import { Notifier } from "../utils/notifier";
 
 // @ts-ignore
 const REDIS_INSTANCE = new RedisDB(config.redisdb.host, config.redisdb.port, config.redisdb.password);
+const FileNotifier = new Notifier();
 bluebird.promisifyAll(Magic.prototype)
 const magic = new Magic(MAGIC_MIME_TYPE);
 
@@ -98,6 +100,16 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
         "mimetype": is_code ? extension : mimetype,
         "time_added": added_time
     });
+    let ipaddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.ip;
+    if (Array.isArray(ipaddr)) {
+        ipaddr = ipaddr[0];
+    }
+    await FileNotifier.notifyAll({
+        filename: file.filename,
+        type: is_code ? "code" : "file",
+        is_admin: is_admin,
+        uploader_ip: ipaddr
+    })
     return true;
 }
 
@@ -143,7 +155,7 @@ const UploadAPI = express.Router();
 const fileupload = Uploader.single("file");
 
 UploadAPI.post("/", (req, res) => {
-    let ipaddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    let ipaddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.ip;
     console.log(`[UploadAPI] Upload request received from ${ipaddr}`);
     fileupload(req, res, (err: any) => {
         console.log(`[UploadAPI] Sending response to ${ipaddr}...`);
