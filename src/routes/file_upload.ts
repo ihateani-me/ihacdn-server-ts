@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 import express from "express";
 import multer from "multer";
 import config from "../config.json";
@@ -83,10 +85,21 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
         await mkdir(upload_path);
     }
     let save_path = join(upload_path);
+    let original_name = file.originalname.split(".");
+    let extension = extname(file.originalname);
     let temp_name = join(file.destination, file.filename);
     let save_key = file.originalname.replace(extname(file.originalname), "");
+    let original_save_name = _.nth(original_name, 0);
+    if (original_name.length > 1) {
+        extension = "." + _.nth(original_name, -1);
+        original_save_name = _.join(_.initial(original_name), ".");
+    } else {
+        extension = "";
+    }
     if (force_original) {
-        save_path = join(upload_path, file.originalname);
+        // @ts-ignore
+        save_key = original_save_name;
+        save_path = join(upload_path, original_save_name + extension);
     } else {
         let gen_name = await generateFilename();
         save_key = gen_name;
@@ -108,7 +121,6 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
     }
     // @ts-ignore
     let mimetype: string = await magic.detectFileAsync(save_path);
-    let extension = extname(file.originalname);
     let [valid_type, invalid_type] = validateFiletype(extension, mimetype);
     if (!valid_type && !is_admin) {
         throw new BlockedMediaTypes(415, invalid_type);
