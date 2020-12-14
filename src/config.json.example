@@ -1,0 +1,45 @@
+{
+    "hostname": "localhost", // Hostname that will be used.
+    "https_mode": false, // Enable HTTPS Mode or not
+    "upload_path": "/var/www/ihacdn/uploads", // The saved uploads
+    "admin_password": "pleasechangethis", // Password for Admin
+    "filename_length": 8, // Randomized password length
+    "redisdb": {
+        "host": "127.0.0.1", // Redis Host
+        "port": 6379, // Redis Port
+        "password": null // Redis password, leave at null if there's none
+    },
+    "notifier": {
+        "enable": true, // This will enable the notifier for a new upload or short
+        "discord_webhook": null // discord webhook URL
+    },
+    "file_retention": {
+        "enable": false, // This will enable file retention before being deleted from server
+        "min_age": 30, // Minimum age in days before deletion
+        "max_age": 180 // Maximum age in days before deletion
+    },
+    "storage": {
+        "filesize_limit": 51200, // Filesize limit for normal user (in kb), leave at null if you don't want any limit
+        "admin_filesize_limit": null // Filesize limit for admin (in kb), leave at null if you don't want any limit
+    },
+    "blocklist": { // Block certain type of file
+        "extension": [
+            "exe",
+            "sh",
+            "msi",
+            "bat",
+            "dll",
+            "com"
+        ],
+        "content_type": [
+            "text/x-sh",
+            "text/x-msdos-batch",
+            "application/x-dosexec",
+            "application/x-msdownload",
+            "application/vnd.microsoft.portable-executable",
+            "application/x-msi",
+            "application/x-msdos-program",
+            "application/x-sh"
+        ]
+    }
+}
