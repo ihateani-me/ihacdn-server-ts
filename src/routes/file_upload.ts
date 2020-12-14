@@ -130,7 +130,7 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
     }
     let is_code = mimetype.startsWith("text");
     let added_time = moment.tz("UTC").unix() * 1000;
-    await REDIS_INSTANCE.set(save_key, {
+    await REDIS_INSTANCE.set(`ihacdn${save_key}`, {
         "type": is_code ? "code" : "file",
         "is_admin": is_admin,
         "path": save_path,

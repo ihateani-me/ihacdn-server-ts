@@ -27,7 +27,7 @@ async function generateFilenameAndUse(url: string, ipaddr: string): Promise<stri
         }
         filename = generateCustomFilename(config.filename_length);
     }
-    await REDIS_INSTANCE.set(filename, {
+    await REDIS_INSTANCE.set(`ihacdn${filename}`, {
         "type": "short",
         "target": url
     })

@@ -57,6 +57,10 @@ app.get("/:idpath", (req, res) => {
     }
     let extension = extname(filepath);
     let filename_only = filepath.replace(extension, "");
+    if (filename_only.startsWith("ihacdn")) {
+        filename_only = filename_only.slice(6);
+    }
+    filename_only = "ihacdn" + filename_only;
     console.log(`[CDNMapping] Trying to access: ${filename_only}`);
     REDIS_INSTANCE.get(filename_only).then((get_data) => {
         if (is_none(get_data)) {
