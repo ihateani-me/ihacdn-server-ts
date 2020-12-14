@@ -70,10 +70,8 @@ app.get("/:idpath", (req, res) => {
                 res.redirect(get_data["target"]);
             } else if (get_data["type"] === "code") {
                 console.info(`[CDNMapping] Key ${filename_only} are code type, rendering page...`);
-                console.log(`Reading file ${get_data["path"]}...`);
                 readFile(get_data["path"], (err, buf) => {
                     if (err) {
-                        console.log(err);
                         REDIS_INSTANCE.delete(filename_only).then(() => {
                             let gone_forever = DELETED_ERROR;
                             gone_forever = gone_forever.replace(/\{\{ FN \}\}/g, filename_only);
@@ -85,7 +83,6 @@ app.get("/:idpath", (req, res) => {
                         })
                     } else {
                         let code_contents = buf.toString();
-                        console.log(code_contents);
                         if (!is_none(code_contents) || code_contents) {
                             let code_snippets = code_contents.slice(0, 10);
                             res.render("codepaste", {

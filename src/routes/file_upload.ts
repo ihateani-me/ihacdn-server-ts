@@ -3,7 +3,8 @@ import multer from "multer";
 import config from "../config.json";
 import { generateCustomFilename, getValueFromKey, humanizebytes, is_none, map_bool } from "../utils/swissknife";
 import { join, extname, isAbsolute } from "path";
-import { existsSync, mkdirSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, unlinkSync, rename as fsrename, mkdir as fsmkdir } from "fs";
+import { promisify } from "util";
 import { RedisDB } from "../utils/redisdb";
 import { Magic, MAGIC_MIME_TYPE } from "mmmagic";
 import moment from "moment-timezone";
@@ -11,6 +12,8 @@ import bluebird from "bluebird";
 import { PAYLOAD_TOO_LARGE, BLOCKED_EXTENSION } from "../utils/error_message";
 import { Notifier } from "../utils/notifier";
 
+const rename = promisify(fsrename);
+const mkdir = promisify(fsmkdir);
 // @ts-ignore
 const REDIS_INSTANCE = new RedisDB(config.redisdb.host, config.redisdb.port, config.redisdb.password);
 const FileNotifier = new Notifier();
@@ -58,7 +61,7 @@ async function generateFilename(): Promise<string> {
 }
 
 async function customFileFilter(req: any, file: Express.Multer.File) {
-    let fslimit = config.storage.filesize_limit * 1024;
+    let force_original = map_bool(getValueFromKey(req.body, "forceoriginal", "0"));
     let secret = getValueFromKey(req.body, "secret", "");
     let is_admin = false;
     if (typeof secret === "object" && Array.isArray(secret)) {
@@ -67,6 +70,30 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
     if (secret === config.admin_password) {
         is_admin = true;
     }
+    let upload_path = config.upload_path;
+    if (is_admin) {
+        upload_path = join(upload_path, "uploads_admin");
+    } else {
+        upload_path = join(upload_path, "uploads");
+    }
+    if (!isAbsolute(upload_path)) {
+        upload_path = join(process.cwd(), upload_path);
+    }
+    if (!existsSync(upload_path)) {
+        await mkdir(upload_path);
+    }
+    let save_path = join(upload_path);
+    let temp_name = join(file.destination, file.filename);
+    let save_key = file.originalname.replace(extname(file.originalname), "");
+    if (force_original) {
+        save_path = join(upload_path, file.originalname);
+    } else {
+        let gen_name = await generateFilename();
+        save_key = gen_name;
+        save_path = join(upload_path, gen_name + extname(file.originalname));
+    }
+    await rename(temp_name, save_path);
+    let fslimit = config.storage.filesize_limit * 1024;
     if (is_admin) {
         // @ts-ignore
         fslimit = config.storage.admin_filesize_limit;
@@ -79,7 +106,6 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
             throw new PayloadTooLarge(413, file.filename);
         }
     }
-    let save_path = join(file.destination, file.filename);
     // @ts-ignore
     let mimetype: string = await magic.detectFileAsync(save_path);
     let extension = extname(file.originalname);
@@ -87,16 +113,15 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
     if (!valid_type && !is_admin) {
         throw new BlockedMediaTypes(415, invalid_type);
     }
-    let filename = file.filename.replace(extension, "");
     if (extension.startsWith(".")) {
         extension = extension.slice(1);
     }
     let is_code = mimetype.startsWith("text");
     let added_time = moment.tz("UTC").unix() * 1000;
-    await REDIS_INSTANCE.set(filename, {
+    await REDIS_INSTANCE.set(save_key, {
         "type": is_code ? "code" : "file",
         "is_admin": is_admin,
-        "path": file.path,
+        "path": save_path,
         "mimetype": is_code ? extension : mimetype,
         "time_added": added_time
     });
@@ -105,12 +130,12 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
         ipaddr = ipaddr[0];
     }
     await FileNotifier.notifyAll({
-        filename: file.filename,
+        filename: `${save_key}.${extension}`,
         type: is_code ? "code" : "file",
         is_admin: is_admin,
         uploader_ip: ipaddr
     })
-    return true;
+    return `${save_key}.${extension}`;
 }
 
 const Storage = multer.diskStorage({
@@ -138,13 +163,8 @@ const Storage = multer.diskStorage({
         cb(null, save_path);
     },
     filename: async function (req, file, cb) {
-        let force_original = map_bool(getValueFromKey(req.body, "forceoriginal", "0"));
-        if (force_original) {
-            cb(null, file.originalname);
-        } else {
-            let generated_fn = await generateFilename();
-            cb(null, generated_fn + extname(file.originalname));
-        }
+        let temp = generateCustomFilename(4, false, true);
+        cb(null, `ihatemp${temp}_` + file.originalname);
     },
 })
 const Uploader = multer({
@@ -179,13 +199,13 @@ UploadAPI.post("/", (req, res) => {
         } else {
             let req_file = req.file;
             console.log(`[UploadAPI:Validation] Validating file from ${ipaddr}`);
-            customFileFilter(req, req_file).then(() => {
+            customFileFilter(req, req_file).then((filename) => {
                 let final_url = "http://";
                 if (config.https_mode) {
                     final_url = "https://";
                 }
                 console.log(`[UploadAPI:Validation] File from ${ipaddr} validated!`);
-                final_url += `${config.hostname}/${req_file.filename}`;
+                final_url += `${config.hostname}/${filename}`;
                 res.status(200).end(final_url);
             }).catch((err) => {
                 try {
