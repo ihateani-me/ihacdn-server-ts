@@ -54,6 +54,9 @@ export async function clearExpiredFile(): Promise<void> {
             let file_age = moment.duration(current_time - item["time_added"]).asDays();
             // @ts-ignore
             let max_age = retentionMax(fsize, item["is_admin"]);
+            if (max_age === -1) {
+                continue;
+            }
             if (file_age > max_age) {
                 console.log(`[Retention] Deleting: ${ihacdn_keys[idx].slice(6)}`);
                 await REDIS_INSTANCE.delete(ihacdn_keys[idx]);
