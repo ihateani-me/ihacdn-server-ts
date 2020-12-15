@@ -53,7 +53,7 @@ What you need:
 5. Run `npm run build`
 6. You will get a `dist` folder which you can use
 7. Copy `src/views` and `src/assets` to the `dist` folder retaining the path (so it will be `dist/views` and `dist/assets`)
-8. `node dist/server.js`
+8. `node dist/server.js`, your server will be hosted at https://127.0.0.1:6969
 
 ## Configuration
 Configure this program by opening `src/config.json`<br>
@@ -135,6 +135,26 @@ Explanation:
 
 ## File Retention
 [To be written.]
+
+## Migrating
+A special script has been added to the root folder named `migrate.py`<br>
+You'll need Python and need to enable the Redis DB, change this line:
+```py
+settings = {
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6371,
+        "password": None
+    },
+    "diskcache_path": "/var/www/ihacdn/diskcache",
+    "new_uploads_path": "/var/www/ihacdn-ts/"  # Don't put the `uploads` or `uploads_admin`
+}
+```
+Then please install this via `pip`:
+- redis
+- diskcached
+
+After that run the script: `python3 migrate.py`
 
 ## Deployment
 
