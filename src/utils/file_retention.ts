@@ -42,7 +42,7 @@ export async function clearExpiredFile(): Promise<void> {
     if (ihacdn_items.length < 1) {
         return;
     }
-    console.log(ihacdn_keys, ihacdn_items);
+    console.log(`[Retention] Checking ${ihacdn_keys.length} keys`)
     let current_time = moment.tz("UTC").unix() * 1000;
     for (let idx = 0; idx < ihacdn_items.length; idx++) {
         // @ts-ignore
