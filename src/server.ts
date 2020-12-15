@@ -52,6 +52,19 @@ app.get("/", (_, res) => {
     })
 })
 
+// echoback
+app.head("/echo", (_, res) => {
+    res.header({
+        "Content-Length": 2,
+        "Content-Type": "text/plain; charset=utf-8"
+    })
+    res.end();
+})
+
+app.get("/echo", (_, res) => {
+    res.send("OK");
+})
+
 app.get("/:idpath", (req, res) => {
     let filepath = req.path;
     if (filepath.startsWith("/")) {
