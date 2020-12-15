@@ -162,7 +162,7 @@ const listener = app.listen(6969, () => {
 })
 
 // Run retention clearance every hour
-cron.schedule("* */1 * * *", () => {
+cron.schedule("*/60 * * * *", () => {
     clearExpiredFile().then(() => {
         // void
     }).catch((err) => {
