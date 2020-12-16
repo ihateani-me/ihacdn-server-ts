@@ -4,6 +4,8 @@ import cron from "node-cron";
 import express from "express";
 import * as cons from "consolidate";
 import express_compression from "compression";
+import winston from "winston";
+import { logger as WinstonLog, errorLogger as WinstonErrorLog } from "express-winston";
 import { extname, join } from "path";
 import { existsSync, readFile } from "fs";
 
@@ -35,6 +37,22 @@ app.use(function(req, res, next) {
         next();
     }
 });
+
+app.use(WinstonLog({
+    transports: [
+        new winston.transports.Console()
+    ],
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.timestamp(),
+        winston.format.ms(),
+        winston.format.printf((info) => {
+            return `[${info["timestamp"]}][${info.level}]: HTTP ${info["meta"]["req"]["httpVersion"]} ${info.message}`;
+        })
+    ),
+    expressFormat: true,
+    colorize: true,
+}))
 
 app.use(express_compression());
 app.use("/static", express.static(join(__dirname, "assets")));
@@ -168,6 +186,20 @@ app.get("/:idpath", (req, res) => {
         res.status(404).end(missing_key);
     })
 })
+
+app.use(WinstonErrorLog({
+    transports: [
+        new winston.transports.Console()
+    ],
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.timestamp(),
+        winston.format.ms(),
+        winston.format.printf((info) => {
+            return `[${info["timestamp"]}][${info.level}]: HTTP ${info["meta"]["req"]["httpVersion"]} ${info.message}`;
+        })
+    ),
+}))
 
 const listener = app.listen(6969, () => {
     console.log("🚀 ihaCDN is now up and running!");
