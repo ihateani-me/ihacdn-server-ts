@@ -98,7 +98,8 @@
 <body>
     <div id="root" class="monospace">
         <form action="/admin/login" method="POST">
-            <input type="hidden" name="ihacdn" value="admin">
+            <input type="hidden" name="_csrf" value="">
+            <input type="hidden" name="_token" value="{{ CSRF_TOKEN }}">
             <label for="inputPassword5" class="form-label">Password</label>
             <input type="password" id="inputPassword5" class="form-control" aria-describedby="passwordHelpBlock" name="password">
             <div class="d-grid gap-2 col-6 mx-auto pt-3">

@@ -2,6 +2,7 @@ import express from "express";
 import passport from "passport";
 import bodyparser from "body-parser";
 import express_session from "express-session";
+import csurf from "csurf";
 import { ensureLoggedIn } from "connect-ensure-login";
 import { Strategy as LocalStrategy } from "passport-local";
 import { unlink as fsunlink } from "fs";
@@ -92,7 +93,7 @@ async function deleteCDNItem(id: string): Promise<boolean> {
 }
 
 passport.use(new LocalStrategy({
-    usernameField: "ihacdn"
+    usernameField: "_token"
     },
     (user, password, done) => {
         if (password !== config.admin_password) {
@@ -110,6 +111,7 @@ passport.deserializeUser(function (id, cb) {
     cb(null, id);
 });
 
+const csrfProtected = csurf();
 AdminRoute.use(bodyparser.urlencoded({ extended: true }));
 // generate new keys everytime it started.
 let super_secret_keys = generateCustomFilename(25, true, true);
@@ -120,7 +122,7 @@ AdminRoute.use(require("flash")());
 AdminRoute.use(passport.initialize());
 AdminRoute.use(passport.session());
 
-AdminRoute.get("/login", (req, res) => {
+AdminRoute.get("/login", csrfProtected, (req, res) => {
     let err_msg = null;
     // @ts-ignore
     if (req.session.flash.length > 0) {
@@ -128,7 +130,8 @@ AdminRoute.get("/login", (req, res) => {
         err_msg = req.session.flash[0].message;
     }
     res.render("login_page", {
-        ERROR_MSG: err_msg
+        ERROR_MSG: err_msg,
+        CSRF_TOKEN: req.csrfToken()
     });
     // @ts-ignore
     if (req.session.flash.length > 0) {
