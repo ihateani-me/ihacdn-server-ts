@@ -9,7 +9,7 @@ import { existsSync, readFile } from "fs";
 
 import config from "./config.json";
 import { humanizebytes, is_none } from "./utils/swissknife";
-import { ShortenerAPI, UploadAPI } from "./routes";
+import { AdminRoute, ShortenerAPI, UploadAPI } from "./routes";
 import { RedisDB } from "./utils/redisdb";
 import { DELETED_ERROR } from "./utils/error_message";
 import { clearExpiredFile } from "./utils/file_retention";
@@ -64,6 +64,10 @@ app.head("/echo", (_, res) => {
 app.get("/echo", (_, res) => {
     res.send("OK");
 })
+
+app.use("/upload", UploadAPI);
+app.use("/short", ShortenerAPI);
+app.use("/admin", AdminRoute);
 
 app.get("/:idpath", (req, res) => {
     let filepath = req.path;
@@ -164,9 +168,6 @@ app.get("/:idpath", (req, res) => {
         res.status(404).end(missing_key);
     })
 })
-
-app.use("/upload", UploadAPI);
-app.use("/short", ShortenerAPI);
 
 const listener = app.listen(6969, () => {
     console.log("🚀 ihaCDN is now up and running!");
