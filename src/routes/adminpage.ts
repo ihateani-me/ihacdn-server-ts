@@ -11,7 +11,6 @@ import { RedisDB } from "../utils/redisdb";
 
 import config from "../config.json";
 import { generateCustomFilename, getValueFromKey, is_none } from "../utils/swissknife";
-import cons from "consolidate";
 
 // @ts-ignore
 const REDIS_INSTANCE = new RedisDB(config.redisdb.host, config.redisdb.port, config.redisdb.password);
