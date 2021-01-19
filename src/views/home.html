@@ -16,9 +16,11 @@
         .monospace {
             font-family: monospace;
         }
+
         a {
             text-decoration: none;
         }
+
         a:hover,
         a:active {
             text-decoration: underline;
@@ -29,16 +31,23 @@
                 background-color: #464646;
                 color: #c9f7e8;
             }
+
             .header-text {
                 color: #c9d5f7;
                 font-weight: 700;
             }
-            a, a:hover, a:active, a:visited {
+
+            a,
+            a:hover,
+            a:active,
+            a:visited {
                 color: #fff8a0;
             }
+
             b {
                 color: #93ffdc;
             }
+
             .cb-example {
                 background-color: #656565a8;
                 color: #abff97;
@@ -47,14 +56,17 @@
                 margin-bottom: 0.4rem;
                 margin-left: 1.25rem;
             }
+
             input {
                 background-color: #656565;
                 color: #00ff20;
             }
+
             .text-in {
                 border: 0px;
                 padding: 0.2rem;
             }
+
             .btn-in {
                 border: 0px;
                 padding: 0.2rem 0.4rem;
@@ -63,6 +75,7 @@
         }
     </style>
 </head>
+
 <body>
     <code class="header-text">&lt;/&gt; The ihateani.me File Sharing Service &lt;/&gt;</code><br>
     <code>=============================================</code><br>
@@ -71,15 +84,18 @@
     {% if https_mode %}
     <code class="cb-example">curl -X POST -F "file=@yourfile.png" https://{{ hostname }}/upload</code><br>
     <code>Shorten URL via POST:</code><br>
-    <code class="cb-example">curl -X POST -F "url=http://your.long/ass/url/that/you/want/to/shorten" https://{{ hostname }}/short</code><br><br>
+    <code class="cb-example">curl -X POST -F "url=http://your.long/ass/url/that/you/want/to/shorten"
+        https://{{ hostname }}/short</code><br><br>
     {% else %}
     <code class="cb-example">curl -X POST -F "file=@yourfile.png" http://{{ hostname }}/upload</code><br>
     <code>Shorten URL via POST:</code><br>
-    <code class="cb-example">curl -X POST -F "url=http://your.long/ass/url/that/you/want/to/shorten" http://{{ hostname }}/short</code><br><br>
+    <code class="cb-example">curl -X POST -F "url=http://your.long/ass/url/that/you/want/to/shorten"
+        http://{{ hostname }}/short</code><br><br>
     {% endif %}
     <code>
         <b>SXCU (ShareX) File:</b><br>
-        &nbsp;&nbsp;Download here: <a href="https://download-directory.github.io/?url=https%3A%2F%2Fgithub.com%2Fnoaione%2Fihacdn-server%2Ftree%2Fmaster%2Fsharex">GitHub</a>
+        &nbsp;&nbsp;Download here: <a
+            href="https://download-directory.github.io/?url=https%3A%2F%2Fgithub.com%2Fnoaione%2Fihacdn-server%2Ftree%2Fmaster%2Fsharex">GitHub</a>
     </code>
     <br><br>
     <code>
@@ -108,7 +124,8 @@
     {% endif %}
     <br>
     <code><b>&lt;/&gt; Source Code &lt;/&gt;</b></code><br>
-    <code><a href="https://github.com/ihateani-me/ihacdn-server-ts">https://github.com/ihateani-me/ihacdn-server-ts</a></code><br>
+    <code><a
+            href="https://github.com/ihateani-me/ihacdn-server-ts">https://github.com/ihateani-me/ihacdn-server-ts</a></code><br>
     <br>
     <code><b>Upload File:</b></code>
     <form name="uploadForm" class="monospace">
@@ -139,6 +156,8 @@
         &nbsp;&nbsp;File size are in bytes.
     </code>
     {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"
+        integrity="sha256-JLmknTdUZeZZ267LP9qB+/DT7tvxOOKctSKeUC2KT6E=" crossorigin="anonymous"></script>
     <script>
         const upload_form = document.getElementById("upload_form"),
             upload_info = document.getElementById("upload_info"),
@@ -149,12 +168,12 @@
 
         // https://stackoverflow.com/a/5717133/13274776
         function validURL(str) {
-            var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-                '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-                '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-                '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-                '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-                '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+            var pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+                '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+                '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+                '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+                '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+                '(\\#[-a-z\\d_]*)?$', 'i'); // fragment locator
             return !!pattern.test(str);
         }
 
@@ -164,18 +183,23 @@
             if (!upload_form.files.length) {
                 upload_info.innerText = "Please select a file.";
             } else {
-                upload_info.innerText = "Uploading...";
-                let files_form = new FormData();
-                files_form.append("file", upload_form.files[0])
-                fetch(
-                    "/upload",
-                    {
-                        method: "POST",
-                        body: files_form
+                upload_info.innerText = "Uploading..."
+                let uploadPackage = new FormData();
+                uploadPackage.append("file", upload_form.files[0]);
+                axios.request({
+                    method: "POST",
+                    url: "/upload",
+                    data: uploadPackage,
+                    onUploadProgress: (p) => {
+                        let progress = ((p.loaded / p.total) * 100).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                        upload_info.innerText = `Uploading... ${progress}%`
+
                     }
-                )
-                .then(response => response.text())
-                .then(data => {
+                }).then(ress => {
+                    let data = ress.data;
                     upload_info.innerText = "";
                     if (data.startsWith("http")) {
                         upload_info.innerHTML = `<a href="${data}">${data}</a>`;
@@ -183,9 +207,6 @@
                         upload_info.innerText = data;
                     }
                 })
-                .catch(error => {
-                    upload_info.innerText = error;
-                });
             };
         });
 
@@ -202,27 +223,27 @@
                     let url_form = new FormData();
                     url_form.append("url", shorten_form.value)
                     fetch(
-                        "/short",
-                        {
-                            method: "POST",
-                            body: url_form
-                        }
-                    )
-                    .then(response => response.text())
-                    .then(data => {
-                        shorten_info.innerText = "";
-                        if (data.startsWith("http")) {
-                            shorten_info.innerHTML = `<a href="${data}">${data}</a>`;
-                        } else {
-                            shorten_info.innerText = data;
-                        }
-                    })
-                    .catch(error => {
-                        shorten_info.innerText = error;
-                    });
+                            "/short", {
+                                method: "POST",
+                                body: url_form
+                            }
+                        )
+                        .then(response => response.text())
+                        .then(data => {
+                            shorten_info.innerText = "";
+                            if (data.startsWith("http")) {
+                                shorten_info.innerHTML = `<a href="${data}">${data}</a>`;
+                            } else {
+                                shorten_info.innerText = data;
+                            }
+                        })
+                        .catch(error => {
+                            shorten_info.innerText = error;
+                        });
                 };
             };
         });
     </script>
 </body>
+
 </html>
