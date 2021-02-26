@@ -70,6 +70,13 @@ app.get("/", (_, res) => {
     })
 })
 
+app.get("/robots.txt", (_, res) => {
+    res.send(
+        `User-agent: *
+        Disallow: /`
+    );
+})
+
 // echoback
 app.head("/echo", (_, res) => {
     res.header({
