@@ -1,15 +1,14 @@
+export type Nulled = null | undefined;
+export type Nullable<T> = T | null;
+export type Unknown = unknown | never;
+
 /**
  * Check if the variable is a null type or not.
  * @param { any } key - things that want to be checked.
  * @returns { boolean } `true` or `false`
  */
-export function is_none(key: any): boolean {
-    if (typeof key == "undefined") {
-        return true;
-    } else if (key == null) {
-        return true;
-    }
-    return false;
+export function is_none(value: any): value is Nulled {
+    return typeof value === "undefined" || value === null;
 }
 
 /**
