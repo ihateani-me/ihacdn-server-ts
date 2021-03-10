@@ -46,7 +46,8 @@ app.get("/", (_, res) => {
         BLACKLIST_CTYPES: config.blocklist.content_type,
         ENABLE_FILE_RETENTION: config.file_retention.enable,
         FILE_RETENTION_MIN_AGE: config.file_retention.min_age,
-        FILE_RETENTION_MAX_AGE: config.file_retention.max_age
+        FILE_RETENTION_MAX_AGE: config.file_retention.max_age,
+        ENABLE_ANALYTICS: config.analytics.enable,
     })
 });
 

@@ -156,6 +156,14 @@
         &nbsp;&nbsp;File size are in bytes.
     </code>
     {% endif %}
+    {% if ENABLE_ANALYTICS %}
+    <br>
+    <code>
+        <b>Analytics Information:</b>
+        This server use analytics for link shortener, we only save the visitor (or someone that use the link) country of origin.<br>
+        We do not save IP Address since it's not needed, the data collection will be used purely for statistics.
+    </code>
+    {% endif %}
     <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"
         integrity="sha256-JLmknTdUZeZZ267LP9qB+/DT7tvxOOKctSKeUC2KT6E=" crossorigin="anonymous"></script>
     <script>
