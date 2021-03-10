@@ -21,6 +21,7 @@ import { getCountry, init as GeoIPInit } from "./utils/geoip";
 const REDIS_INSTANCE = new RedisDB(config.redisdb.host, config.redisdb.port, config.redisdb.password);
 
 const app = express();
+app.set("trust proxy", true);
 app.engine("html", cons.atpl);
 app.set("view engine", "html");
 app.set("views", __dirname + "/views");
@@ -101,14 +102,7 @@ function realGetCountry(ipSets: string[]): string {
 
 app.get("/:idpath", async (req, res) => {
     const logger = MainLogger.child({fn: "CDNMapping"});
-    let ipaddr = req.headers["x-forwareded-for"] || req.connection.remoteAddress || req.ip;
-    let ipArrays = [];
-    if (!Array.isArray(ipaddr)) {
-        ipaddr = ipaddr.split(", ")
-        ipArrays = ipaddr;
-    } else {
-        ipArrays = ipaddr;
-    }
+    let ipArrays = req.ips;
     const IPCountry = realGetCountry(ipArrays);
 
     let filepath = req.path;
@@ -122,7 +116,7 @@ app.get("/:idpath", async (req, res) => {
     }
     const realKey = filename_only;
     filename_only = "ihacdn" + filename_only;
-    logger.info(`Trying to access: ${filename_only}`);
+    logger.info(`Trying to access: ${filename_only} (Origin country request: ${IPCountry})`);
     let redisData = await REDIS_INSTANCE.get(filename_only);
     if (is_none(redisData)) {
         logger.error(`Key ${filename_only} doesn't exist`);
