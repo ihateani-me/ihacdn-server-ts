@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { generateCustomFilename, getValueFromKey, is_none } from "../utils/swissknife";
-import config from "../config.json";
+import config from "../config";
 import { RedisDB } from "../utils/redisdb";
 import { Notifier } from "../utils/notifier";
 

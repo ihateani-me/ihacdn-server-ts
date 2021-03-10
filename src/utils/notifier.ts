@@ -1,10 +1,10 @@
 import axios from "axios";
-import main_config from "../config.json";
+import main_config from "../config";
 import { is_none } from "./swissknife";
 
 export interface NotifierConfig {
     enable: boolean
-    discord_webhook: string
+    discord_webhook?: string | null
 }
 
 export interface NotifierRequest {

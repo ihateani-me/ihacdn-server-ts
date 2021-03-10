@@ -1,4 +1,4 @@
-import Redis = require("ioredis");
+import Redis from "ioredis";
 import { fallbackNaN, is_none } from "../utils/swissknife";
 
 export class RedisDB {

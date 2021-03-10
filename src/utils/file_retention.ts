@@ -2,7 +2,7 @@ import moment from "moment-timezone";
 import { unlink as fsunlink, stat as fsstat } from "fs";
 import { promisify } from "util"
 
-import config from "../config.json";
+import config from "../config";
 import { RedisDB } from "./redisdb";
 import { is_none } from "./swissknife";
 

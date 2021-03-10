@@ -9,7 +9,7 @@ import { unlink as fsunlink } from "fs";
 import { promisify } from "util"
 import { RedisDB } from "../utils/redisdb";
 
-import config from "../config.json";
+import config from "../config";
 import { generateCustomFilename, getValueFromKey, is_none } from "../utils/swissknife";
 
 // @ts-ignore

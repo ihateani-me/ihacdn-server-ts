@@ -2,7 +2,7 @@ import _ from "lodash";
 
 import express from "express";
 import multer from "multer";
-import config from "../config.json";
+import config from "../config";
 import { generateCustomFilename, getValueFromKey, humanizebytes, is_none, map_bool } from "../utils/swissknife";
 import { join, extname, isAbsolute } from "path";
 import { existsSync, mkdirSync, unlinkSync, rename as fsrename, mkdir as fsmkdir } from "fs";
@@ -106,7 +106,10 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
         save_path = join(upload_path, gen_name + extname(file.originalname));
     }
     await rename(temp_name, save_path);
-    let fslimit = config.storage.filesize_limit * 1024;
+    let fslimit = null;
+    if (!is_none(config.storage.filesize_limit)) {
+        fslimit = config.storage.filesize_limit * 1024;
+    };
     if (is_admin) {
         // @ts-ignore
         fslimit = config.storage.admin_filesize_limit;
@@ -198,7 +201,11 @@ UploadAPI.post("/", (req, res) => {
             console.log(`[UploadAPI:PayloadTooLarge] File exceeded maximum filesize.`);
             let payload_err = PAYLOAD_TOO_LARGE;
             payload_err = payload_err.replace(/\{\{ FN \}\}/g, err.filename);
-            payload_err = payload_err.replace(/\{\{ FS \}\}/g, humanizebytes(config.storage.filesize_limit * 1024));
+            let fslimit = "No limit";
+            if (!is_none(config.storage.filesize_limit)) {
+                fslimit = humanizebytes(config.storage.filesize_limit * 1024);
+            };
+            payload_err = payload_err.replace(/\{\{ FS \}\}/g, fslimit);
             res.status(413).end(payload_err);
         } else if (err instanceof BlockedMediaTypes) {
             console.log(`[UploadAPI:BlockedMediaType] User tried to upload ${err.media_types} to server.`);
@@ -227,7 +234,11 @@ UploadAPI.post("/", (req, res) => {
                     console.log(`[UploadAPI:PayloadTooLarge] User ${ipaddr} file exceeded maximum filesize.`);
                     let payload_err = PAYLOAD_TOO_LARGE;
                     payload_err = payload_err.replace(/\{\{ FN \}\}/g, err.filename);
-                    payload_err = payload_err.replace(/\{\{ FS \}\}/g, humanizebytes(config.storage.filesize_limit * 1024));
+                    let fslimit = "No limit";
+                    if (!is_none(config.storage.filesize_limit)) {
+                        fslimit = humanizebytes(config.storage.filesize_limit * 1024);
+                    };
+                    payload_err = payload_err.replace(/\{\{ FS \}\}/g, fslimit);
                     res.status(413).end(payload_err);
                 } else if (err instanceof BlockedMediaTypes) {
                     console.log(`[UploadAPI:BlockedMediaType] User IP ${ipaddr} tried to upload ${err.media_types} to server.`);
