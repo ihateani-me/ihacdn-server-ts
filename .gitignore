@@ -45,3 +45,6 @@ src/config.js
 src/config.json
 uploads/
 uploads_admin/
+
+src/config.ts
+src/geoip/
