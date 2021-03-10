@@ -1,4 +1,40 @@
-{
+interface IServerConfig {
+    hostname: string
+    https_mode: boolean
+    upload_path: string
+    admin_password: string
+    filename_length: number
+    redisdb: {
+        host: string
+        port: number
+        password?: string | null
+    }
+    notifier: {
+        enable: boolean
+        discord_webhook?: string | null
+    }
+    file_retention: {
+        enable: boolean
+        min_age: number
+        max_age: number
+    }
+    analytics: {
+        enable: boolean
+        geoip?: {
+            license_key?: string | null
+        }
+    }
+    storage: {
+        filesize_limit?: number | null
+        admin_filesize_limit?: number | null
+    }
+    blocklist: {
+        extension: string[]
+        content_type: string[]
+    }
+}
+
+const CONFIGURATIONS: IServerConfig = {
     "hostname": "localhost", // Hostname that will be used.
     "https_mode": false, // Enable HTTPS Mode or not
     "upload_path": "./", // The saved uploads
@@ -22,6 +58,12 @@
         "filesize_limit": 51200, // Filesize limit for normal user (in kb), leave at null if you don't want any limit
         "admin_filesize_limit": null // Filesize limit for admin (in kb), leave at null if you don't want any limit
     },
+    "analytics": {
+        "enable": true, // Enable redirection analytics or not.
+        "geoip": { // Support for geoip info, use MaxMind data.
+            "license_key": null
+        }
+    },
     "blocklist": { // Block certain type of file
         "extension": [
             "exe",
@@ -43,3 +85,5 @@
         ]
     }
 }
+
+export default CONFIGURATIONS;
