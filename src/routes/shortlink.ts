@@ -4,6 +4,7 @@ import { generateCustomFilename, getValueFromKey, is_none } from "../utils/swiss
 import config from "../config";
 import { RedisDB } from "../utils/redisdb";
 import { Notifier } from "../utils/notifier";
+import { logger as MainLogger } from "../utils/logger";
 
 // @ts-ignore
 const REDIS_INSTANCE = new RedisDB(config.redisdb.host, config.redisdb.port, config.redisdb.password);
@@ -41,8 +42,9 @@ async function generateFilenameAndUse(url: string, ipaddr: string): Promise<stri
 }
 
 ShortenerAPI.post("/", ShortHelper.single("url"), (req, res) => {
-    let ipaddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.ip;
-    console.log(`[ShortenerAPI] Request received from ${ipaddr}`);
+    let ipArrays = req.ips;
+    const logger = MainLogger.child({cls: "CDM", fn: "ShortenerAPI"});
+    logger.info(`Request received from ${ipArrays.join(", ")}`);
     let url_to_shorten = getValueFromKey(req.body, "url", null);
     if (is_none(url_to_shorten)) {
         res.status(400).end("No URL provided");
@@ -50,10 +52,10 @@ ShortenerAPI.post("/", ShortHelper.single("url"), (req, res) => {
         if (!URL_REGEX.test(url_to_shorten)) {
             res.status(400).end("Invalid URL provided");
         } else {
-            console.log(`[ShortenerAPI] Generating new shortlink for ${ipaddr}`);
+            logger.info(`Generating new shortlink for ${ipArrays.join(", ")}`);
             // @ts-ignore
             generateFilenameAndUse(url_to_shorten, ipaddr).then((shortened) => {
-                console.log(`[ShortenerAPI] Shortened ID for ${ipaddr}: ${shortened}`)
+                logger.info(`Shoretned ID got for ${ipArrays.join(", ")}, ${shortened}`);
                 let final_url = "http://";
                 if (config.https_mode) {
                     final_url = "https://";
@@ -61,7 +63,7 @@ ShortenerAPI.post("/", ShortHelper.single("url"), (req, res) => {
                 final_url += `${config.hostname}/${shortened}`;
                 res.status(200).end(final_url);
             }).catch((err) => {
-                console.log(`[ShortenerAPI:Error] ${err.toString()}`);
+                logger.error(`Error generic received for ${ipArrays.join(", ")}, ${err.toString()}`);
                 res.status(500).end("Server failed to shorten link.");
             })
         }

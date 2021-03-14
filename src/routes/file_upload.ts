@@ -13,6 +13,7 @@ import moment from "moment-timezone";
 import bluebird from "bluebird";
 import { PAYLOAD_TOO_LARGE, BLOCKED_EXTENSION } from "../utils/error_message";
 import { Notifier } from "../utils/notifier";
+import { logger as MainLogger } from "../utils/logger";
 
 const rename = promisify(fsrename);
 const mkdir = promisify(fsmkdir);
@@ -190,15 +191,16 @@ const UploadAPI = express.Router();
 const fileupload = Uploader.single("file");
 
 UploadAPI.post("/", (req, res) => {
-    let ipaddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.ip;
-    console.log(`[UploadAPI] Upload request received from ${ipaddr}`);
+    let ipArrays = req.ips;
+    const logger = MainLogger.child({cls: "CDM", fn: "UploadAPI"});
+    logger.info(`Upload request received from ${ipArrays.join(", ")}`);
     fileupload(req, res, (err: any) => {
-        console.log(`[UploadAPI] Sending response to ${ipaddr}...`);
+        logger.info(`Sending response back to ${ipArrays.join(", ")}`);
         if (err instanceof multer.MulterError) {
-            console.log(`[UploadAPI:MulterError] ${err.toString()}`);
+            logger.error(`MulterError: ${err.toString()}`);
             res.status(500).end("Server failed to process uploaded file.");
         } else if (err instanceof PayloadTooLarge) {
-            console.log(`[UploadAPI:PayloadTooLarge] File exceeded maximum filesize.`);
+            logger.error(`MulterError::PayloadTooLarge: File exceeded maximum filesize.`);
             let payload_err = PAYLOAD_TOO_LARGE;
             payload_err = payload_err.replace(/\{\{ FN \}\}/g, err.filename);
             let fslimit = "No limit";
@@ -208,22 +210,22 @@ UploadAPI.post("/", (req, res) => {
             payload_err = payload_err.replace(/\{\{ FS \}\}/g, fslimit);
             res.status(413).end(payload_err);
         } else if (err instanceof BlockedMediaTypes) {
-            console.log(`[UploadAPI:BlockedMediaType] User tried to upload ${err.media_types} to server.`);
+            logger.error(`MulterError::BlockedMediaType: User tried to upload ${err.media_types} to server.`);
             let blocked_err = BLOCKED_EXTENSION;
             blocked_err = blocked_err.replace("{{ FILE_TYPE }}", err.media_types);
             res.status(415).end(blocked_err);
         } else if (err instanceof Error) {
-            console.log(`[UploadAPI:Error] ${err.toString()}`);
+            logger.error(`MulterError::Error: ${err.toString()}`);
             res.status(500).end("Server failed to process uploaded file.");
         } else {
             let req_file = req.file;
-            console.log(`[UploadAPI:Validation] Validating file from ${ipaddr}`);
+            logger.info(`Validating file from ${ipArrays.join(", ")}`);
             customFileFilter(req, req_file).then((filename) => {
                 let final_url = "http://";
                 if (config.https_mode) {
                     final_url = "https://";
                 }
-                console.log(`[UploadAPI:Validation] File from ${ipaddr} validated!`);
+                logger.info(`File from ${ipArrays.join(", ")} validated, returning!`);
                 final_url += `${config.hostname}/${filename}`;
                 res.status(200).end(final_url);
             }).catch((err) => {
@@ -231,7 +233,7 @@ UploadAPI.post("/", (req, res) => {
                     unlinkSync(req_file.path)
                 } catch (e) {};
                 if (err instanceof PayloadTooLarge) {
-                    console.log(`[UploadAPI:PayloadTooLarge] User ${ipaddr} file exceeded maximum filesize.`);
+                    logger.error(`PayloadTooLarge: User ${ipArrays.join(", ")} file exceeded maximum filesize.`);
                     let payload_err = PAYLOAD_TOO_LARGE;
                     payload_err = payload_err.replace(/\{\{ FN \}\}/g, err.filename);
                     let fslimit = "No limit";
@@ -241,12 +243,12 @@ UploadAPI.post("/", (req, res) => {
                     payload_err = payload_err.replace(/\{\{ FS \}\}/g, fslimit);
                     res.status(413).end(payload_err);
                 } else if (err instanceof BlockedMediaTypes) {
-                    console.log(`[UploadAPI:BlockedMediaType] User IP ${ipaddr} tried to upload ${err.media_types} to server.`);
+                    logger.error(`BlockedMediaTypes: User ${ipArrays.join(", ")} tried to upload ${err.media_types} to server.`);
                     let blocked_err = BLOCKED_EXTENSION;
                     blocked_err = blocked_err.replace("{{ FILE_TYPE }}", err.media_types);
                     res.status(415).end(blocked_err);
                 } else {
-                    console.log(`[UploadAPI:Error] ${err.toString()}`);
+                    logger.error(`Error: User ${ipArrays.join(", ")} upload got a generic Error: ${err.toString()}`);
                     res.status(500).end("Server failed to process uploaded file.");
                 }
             })
