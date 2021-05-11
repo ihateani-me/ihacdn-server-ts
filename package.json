@@ -20,7 +20,7 @@
     "express-winston": "^4.0.5",
     "flash": "^1.1.0",
     "ioredis": "^4.19.4",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "mmmagic": "^0.5.3",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.32",
