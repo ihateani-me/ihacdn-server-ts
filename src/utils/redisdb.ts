@@ -2,26 +2,23 @@ import Redis from "ioredis";
 import { fallbackNaN, is_none } from "../utils/swissknife";
 
 export class RedisDB {
-    client: Redis.Redis
-    usable: boolean
-    host: string
-    port: number
+    client: Redis.Redis;
+    usable: boolean;
+    host: string;
+    port: number;
 
-    constructor(host: string, port: number, password?: string) {
+    constructor(host: string, port: number, password?: string | null) {
         this.host = host;
         this.port = port;
+        let redisDB;
         if (!is_none(password)) {
-            // eslint-disable-next-line no-var
-            var redis_db = new Redis(port, host, {
-                "password": password,
+            redisDB = new Redis(port, host, {
+                password: password,
             });
         } else {
-            // eslint-disable-next-line no-var
-            var redis_db = new Redis(port, host, {
-                "password": password,
-            });
+            redisDB = new Redis(port, host);
         }
-        this.client = redis_db;
+        this.client = redisDB;
         this.usable = true;
     }
 
@@ -60,7 +57,7 @@ export class RedisDB {
         }
         try {
             value = JSON.parse(value);
-        } catch (e) {};
+        } catch (e) {}
         if (typeof value === "string") {
             value = fallbackNaN(parseFloat, value);
         }
@@ -74,7 +71,7 @@ export class RedisDB {
             const ttl_left = await this.client.ttl(key);
             return [res, ttl_left];
         } else if (return_ttl && is_none(res)) {
-            return [res, 0]
+            return [res, 0];
         }
         return res;
     }

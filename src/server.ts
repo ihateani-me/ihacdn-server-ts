@@ -36,7 +36,7 @@ app.use("/static", express.static(join(__dirname, "assets")));
 app.get("/", (_, res) => {
     let fslimit = "None";
     if (typeof config.storage.filesize_limit === "number") {
-        fslimit = humanizebytes(config.storage.filesize_limit * 1024)
+        fslimit = humanizebytes(config.storage.filesize_limit * 1024);
     }
     res.render("home", {
         hostname: config.hostname,
@@ -48,7 +48,7 @@ app.get("/", (_, res) => {
         FILE_RETENTION_MIN_AGE: config.file_retention.min_age,
         FILE_RETENTION_MAX_AGE: config.file_retention.max_age,
         ENABLE_ANALYTICS: config.analytics.enable,
-    })
+    });
 });
 
 app.get("/robots.txt", (_, res) => {
@@ -56,20 +56,20 @@ app.get("/robots.txt", (_, res) => {
         `User-agent: *
         Disallow: /`
     );
-})
+});
 
 // echoback
 app.head("/echo", (_, res) => {
     res.header({
         "Content-Length": 2,
-        "Content-Type": "text/plain; charset=utf-8"
-    })
+        "Content-Type": "text/plain; charset=utf-8",
+    });
     res.end();
-})
+});
 
 app.get("/echo", (_, res) => {
     res.send("OK");
-})
+});
 
 app.use("/upload", UploadAPI);
 app.use("/short", ShortenerAPI);
@@ -102,7 +102,7 @@ function realGetCountry(ipSets: string[]): string {
 }
 
 app.get("/:idpath", async (req, res) => {
-    const logger = MainLogger.child({fn: "CDNMapping"});
+    const logger = MainLogger.child({ fn: "CDNMapping" });
     let ipArrays = req.ips;
     const IPCountry = realGetCountry(ipArrays);
 
@@ -156,7 +156,7 @@ app.get("/:idpath", async (req, res) => {
                         });
                     }
                 }
-            })
+            });
         } else if (redisData["type"] === "file") {
             if (!existsSync(redisData["path"])) {
                 await REDIS_INSTANCE.delete(filename_only);
@@ -172,14 +172,14 @@ app.get("/:idpath", async (req, res) => {
             res.status(404).end(missing_key);
         }
     }
-})
+});
 
 app.get("/:idpath/raw", async (req, res) => {
-    const logger = MainLogger.child({fn: "CDNRawMapping"});
+    const logger = MainLogger.child({ fn: "CDNRawMapping" });
     let ipArrays = req.ips;
     const IPCountry = realGetCountry(ipArrays);
 
-    let filepath = req.path;
+    let filepath = req.path.replace("/raw", "");
     if (filepath.startsWith("/")) {
         filepath = filepath.slice(1);
     }
@@ -214,7 +214,7 @@ app.get("/:idpath/raw", async (req, res) => {
             res.status(404).end(missing_key);
         }
     }
-})
+});
 
 app.use(expressErrorLogger);
 
@@ -224,16 +224,17 @@ GeoIPInit().then(() => {
         // @ts-ignore
         console.log("http://127.0.0.1:" + listener.address().port);
     });
-    
+
     // Run retention clearance every hour
     cron.schedule("*/60 * * * *", () => {
-        const logger = MainLogger.child({fn: "FileRetention"});
-        clearExpiredFile().then(() => {
-            // void
-        }).catch((err) => {
-            logger.error("[Retention] Error occured:");
-            console.error(err);
-        })
+        const logger = MainLogger.child({ fn: "FileRetention" });
+        clearExpiredFile()
+            .then(() => {
+                // void
+            })
+            .catch((err) => {
+                logger.error("[Retention] Error occured:");
+                console.error(err);
+            });
     });
-    
 });
