@@ -174,6 +174,48 @@ app.get("/:idpath", async (req, res) => {
     }
 })
 
+app.get("/:idpath/raw", async (req, res) => {
+    const logger = MainLogger.child({fn: "CDNRawMapping"});
+    let ipArrays = req.ips;
+    const IPCountry = realGetCountry(ipArrays);
+
+    let filepath = req.path;
+    if (filepath.startsWith("/")) {
+        filepath = filepath.slice(1);
+    }
+    let extension = extname(filepath);
+    let filename_only = filepath.replace(extension, "");
+    if (filename_only.startsWith("ihacdn")) {
+        filename_only = filename_only.slice(6);
+    }
+    const realKey = filename_only;
+    filename_only = "ihacdn" + filename_only;
+    logger.info(`Trying to access: ${filename_only} (Origin country request: ${IPCountry})`);
+    let redisData = await REDIS_INSTANCE.get(filename_only);
+    if (is_none(redisData)) {
+        logger.error(`Key ${filename_only} doesn't exist`);
+        let missing_key = DELETED_ERROR;
+        missing_key = missing_key.replace(/\{\{ FN \}\}/g, filename_only);
+        res.status(404).end(missing_key);
+    } else {
+        if (redisData["type"] === "code") {
+            if (!existsSync(redisData["path"])) {
+                await REDIS_INSTANCE.delete(filename_only);
+                let gone_forever = DELETED_ERROR;
+                gone_forever = gone_forever.replace(/\{\{ FN \}\}/g, filename_only);
+                res.status(410).end(gone_forever);
+            } else {
+                logger.info(`Key ${filename_only} are code type, sending...`);
+                res.sendFile(redisData["path"]);
+            }
+        } else {
+            let missing_key = DELETED_ERROR;
+            missing_key = missing_key.replace(/\{\{ FN \}\}/g, filename_only);
+            res.status(404).end(missing_key);
+        }
+    }
+})
+
 app.use(expressErrorLogger);
 
 GeoIPInit().then(() => {
