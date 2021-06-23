@@ -5,6 +5,7 @@ import express from "express";
 import * as cons from "consolidate";
 import express_compression from "compression";
 import express_cors from "cors";
+import {extension as findExtension} from "mime-types";
 import { extname, join } from "path";
 import { existsSync, readFile } from "fs";
 
@@ -153,6 +154,7 @@ app.get("/:idpath", async (req, res) => {
                             CODE_SNIPPETS: code_snippets,
                             CODE_DATA: code_contents,
                             CODE_TYPE: extension === "" ? redisData["mimetype"] : extension.slice(1),
+                            FILE_ID: realKey
                         });
                     }
                 }
@@ -164,7 +166,18 @@ app.get("/:idpath", async (req, res) => {
                 gone_forever = gone_forever.replace(/\{\{ FN \}\}/g, filename_only);
                 res.status(410).end(gone_forever);
             } else {
-                res.sendFile(redisData["path"]);
+                let fileExt = findExtension(redisData["mimetype"] || "");
+                if (fileExt === false) {
+                    fileExt = "";
+                }
+                if (fileExt === "bin") {
+                    fileExt = "";
+                } else {
+                    if (fileExt !== "") {
+                        fileExt = "." + extension;
+                    }
+                }
+                res.download(redisData["path"], `${realKey}${fileExt}`);
             }
         } else {
             let missing_key = DELETED_ERROR;
@@ -206,7 +219,15 @@ app.get("/:idpath/raw", async (req, res) => {
                 res.status(410).end(gone_forever);
             } else {
                 logger.info(`Key ${filename_only} are code type, sending...`);
-                res.sendFile(redisData["path"]);
+                let extension = redisData["mimetype"] || "";
+                if (extension === "bin") {
+                    extension = "";
+                } else {
+                    if (extension !== "") {
+                        extension = "." + extension;
+                    }
+                }
+                res.download(redisData["path"], `${realKey}${extension === false ? "txt" : extension}`);
             }
         } else {
             let missing_key = DELETED_ERROR;
