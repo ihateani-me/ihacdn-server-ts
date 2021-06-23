@@ -15,16 +15,49 @@
     <meta property="og:image" content="/static/img/favicon.png">
     <link rel="icon" type="image/png" href="/static/img/favicon.png" />
     <link rel="icon" href="/static/img/favicon.ico" />
+    <style>
+        .raw-data-code {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            margin: 0px;
+            border-radius: 10px;
+            padding: 0.5rem;
+            background-color: #525c71;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color, background-color 0.3s ease-in-out;
+        }
+
+        .raw-data-code>* {
+            margin: 0px;
+        }
+
+        .raw-data-code:hover {
+            text-decoration: underline;
+            background-color: #464f63;
+            color: #dcdcdc;
+        }
+    </style>
 </head>
 
 <body>
-<pre><code id="code" class="{{ CODE_TYPE }}">{{ CODE_DATA }}</code></pre>
+<pre id="code-contents"><code id="code" class="{{ CODE_TYPE }}">{{ CODE_DATA }}</code></pre>
+<div class="raw-data-code">raw</div>
 <script>
     hljs.registerAliases("vpy", {
         languageName: 'python'
     });
     hljs.initHighlightingOnLoad();
     hljs.initLineNumbersOnLoad();
+
+    const codeElem = document.querySelector(".raw-data-code");
+    codeElem.onclick = function () {
+        window.open("/{{ FILE_ID }}/raw", "_blank", "noreferrer noopener")
+    }
 </script>
 </body>
 </html>
