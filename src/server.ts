@@ -166,7 +166,8 @@ app.get("/:idpath", async (req, res) => {
                 gone_forever = gone_forever.replace(/\{\{ FN \}\}/g, filename_only);
                 res.status(410).end(gone_forever);
             } else {
-                let fileExt = findExtension(redisData["mimetype"] || "");
+                const mimetypesFile = redisData["mimetype"] as string || "";
+                let fileExt = findExtension(mimetypesFile);
                 if (fileExt === false) {
                     fileExt = "";
                 }
@@ -174,10 +175,15 @@ app.get("/:idpath", async (req, res) => {
                     fileExt = "";
                 } else {
                     if (fileExt !== "") {
-                        fileExt = "." + extension;
+                        fileExt = "." + fileExt;
                     }
                 }
-                res.download(redisData["path"], `${realKey}${fileExt}`);
+
+                if (mimetypesFile.startsWith("image")) {
+                    res.sendFile(redisData["path"]);
+                } else {
+                    res.download(redisData["path"], `${realKey}${fileExt}`);
+                }
             }
         } else {
             let missing_key = DELETED_ERROR;
