@@ -43,6 +43,10 @@ async function generateFilenameAndUse(url: string, ipaddr: string): Promise<stri
 
 ShortenerAPI.post("/", ShortHelper.single("url"), (req, res) => {
     let ipArrays = req.ips;
+    let ipaddr = ipArrays as unknown as string;
+    if (Array.isArray(ipArrays)) {
+        ipaddr = ipArrays[0];
+    }
     const logger = MainLogger.child({cls: "CDM", fn: "ShortenerAPI"});
     logger.info(`Request received from ${ipArrays.join(", ")}`);
     let url_to_shorten = getValueFromKey(req.body, "url", null);
