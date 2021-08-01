@@ -8,6 +8,7 @@ import express_cors from "cors";
 import {extension as findExtension} from "mime-types";
 import { extname, join } from "path";
 import { existsSync, readFile } from "fs";
+import { collectDefaultMetrics, register } from "prom-client";
 
 import config from "./config";
 import { humanizebytes, is_none } from "./utils/swissknife";
@@ -18,6 +19,7 @@ import { clearExpiredFile } from "./utils/file_retention";
 import { expressErrorLogger, expressLogger, logger as MainLogger } from "./utils/logger";
 import { getCountry, init as GeoIPInit } from "./utils/geoip";
 
+collectDefaultMetrics();
 // @ts-ignore
 const REDIS_INSTANCE = new RedisDB(config.redisdb.host, config.redisdb.port, config.redisdb.password);
 
@@ -70,6 +72,15 @@ app.head("/echo", (_, res) => {
 
 app.get("/echo", (_, res) => {
     res.send("OK");
+});
+
+app.get("/metrics", async (_res, res) => {
+    try {
+        res.set("Content-Type", register.contentType);
+        res.end(await register.metrics());
+    } catch (err) {
+        res.status(500).end(err);
+    }
 });
 
 app.use("/upload", UploadAPI);
