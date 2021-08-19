@@ -41,11 +41,15 @@
             background-color: #464f63;
             color: #dcdcdc;
         }
+
+        #content-code {
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 
 <body>
-<pre id="code-contents"><code id="code" class="{{ CODE_TYPE }}">{{ CODE_DATA }}</code></pre>
+<pre id="code-contents"><code id="content-code" class="{{ CODE_TYPE }}">{{ CODE_DATA }}</code></pre>
 <div class="raw-data-code">raw</div>
 <script>
     hljs.registerAliases("vpy", {
