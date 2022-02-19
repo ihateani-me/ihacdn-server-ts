@@ -18,6 +18,7 @@ interface ihaCDNObject {
     target?: string
     mimetype?: string
     time_added?: number
+    delete_at?: number | null;
 }
 
 function retentionMax(fsize: number, is_admin: boolean): number {
@@ -56,6 +57,13 @@ export async function clearExpiredFile(): Promise<void> {
             let max_age = retentionMax(fsize, item["is_admin"]);
             if (max_age === -1) {
                 continue;
+            }
+            const deleteAt = item.delete_at;
+            if (typeof deleteAt === "number" && typeof item.time_added === "number") {
+                const subtraction = deleteAt - item.time_added;
+                if (subtraction > 0 && subtraction < max_age) {
+                    max_age = subtraction;
+                }
             }
             if (file_age > max_age) {
                 console.log(`[Retention] Deleting: ${ihacdn_keys[idx].slice(6)}`);

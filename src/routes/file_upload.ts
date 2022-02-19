@@ -48,6 +48,16 @@ class BlockedMediaTypes extends Error {
     }
 }
 
+function selectFirst(st: string[] | string | undefined): string | undefined {
+    if (is_none(st)) {
+        return undefined;
+    }
+    if (Array.isArray(st)) {
+        return st[0];
+    }
+    return st;
+}
+
 
 async function generateFilename(): Promise<string> {
     let filename = generateCustomFilename(config.filename_length);
@@ -66,6 +76,9 @@ async function generateFilename(): Promise<string> {
 async function customFileFilter(req: any, file: Express.Multer.File) {
     let force_original = map_bool(getValueFromKey(req.body, "forceoriginal", "0"));
     let secret = getValueFromKey(req.body, "secret", "");
+    const { retention } = req.query;
+    // @ts-ignore
+    const firstRetention = selectFirst(retention);
     let is_admin = false;
     if (typeof secret === "object" && Array.isArray(secret)) {
         secret = secret[0];
@@ -134,12 +147,22 @@ async function customFileFilter(req: any, file: Express.Multer.File) {
     }
     let is_code = mimetype.startsWith("text");
     let added_time = moment.tz("UTC").unix() * 1000;
+    let delete_time = null;
+    if (!is_none(firstRetention)) {
+        const asNumberRet = parseInt(firstRetention);
+        if (!isNaN(asNumberRet)) {
+            // convert day to second
+            const asNumberRetActual = asNumberRet * 24 * 60 * 60;
+            delete_time = added_time + asNumberRetActual
+        }
+    }
     await REDIS_INSTANCE.set(`ihacdn${save_key}`, {
         "type": is_code ? "code" : "file",
         "is_admin": is_admin,
         "path": save_path,
         "mimetype": is_code ? extension : mimetype,
-        "time_added": added_time
+        "time_added": added_time,
+        "delete_at": delete_time,
     });
     let ipaddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.ip;
     if (Array.isArray(ipaddr)) {
